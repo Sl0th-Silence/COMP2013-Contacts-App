@@ -2,8 +2,34 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import ContactsCardsContainer from "./ContactsCardsContainer";
 import ContactForm from "./ContactForm";
+import { Link, useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import Cookies from "js-cookie";
 
 export default function ContactsApp() {
+  const navigate = useNavigate();
+  //LAB 5 States
+  const [currentUser, setCurrentUser] = useState(() => {
+    //Grab the cookie and decode it
+    const jwtToken = Cookies.get("jwt-authorize");
+    if (!jwtToken) {
+      return "";
+    }
+    try {
+      const jwtDecodedToken = jwtDecode(jwtToken);
+      return jwtDecodedToken.username;
+    } catch {
+      return "";
+    }
+  });
+
+  //Use Effects
+  useEffect(() => {
+    if (!currentUser) {
+      navigate("/not-authorized");
+    }
+  }, []);
+
   //States
   const [contactsData, setContactsData] = useState([]);
   const [formData, setFormData] = useState({
@@ -120,9 +146,20 @@ export default function ContactsApp() {
     }
   };
 
+  //Handle log off
+  const handleLogOff = () => {
+    Cookies.remove("jwt-authorize");
+    setCurrentUser("");
+    navigate("/");
+  };
+
   //Render
   return (
     <div>
+      {/* Lab 5 work */}
+      <h1>Welcome {currentUser}</h1>
+      <Link to={"/"}>Back to Login</Link> <br />
+      <button onClick={() => handleLogOff()}>LogOff</button>
       <ContactForm
         name={formData.name}
         email={formData.email}
